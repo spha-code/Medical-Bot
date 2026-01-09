@@ -1,6 +1,7 @@
 #Create the Directories of the Medical-Bot
 mkdir -p src
 mkdir -p research
+mkdir -p data
 
 #Create the Files within the Directories
 

@@ -17,4 +17,5 @@ dependencies = [
     "cryptography>=44.0.0",
     "langchain-core>=1.2.7",
     "langchain-huggingface>=1.2.0",
+    "pinecone>=7.3.0",
 ]

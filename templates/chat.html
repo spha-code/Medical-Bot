@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="chat-wrapper">
+        <div id="chatLog" class="chat-log">
+        </div>
+
+        <form id="chatForm" class="chat-form">
+            <input id="chatInput" type="text" placeholder="Ask a medical question..." required autocomplete="off">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        const chatLog = document.getElementById('chatLog');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            // 1. UI: Append User Message
+            appendMsg(text, 'user');
+
+            // 2. Prepare UI for loading
+            chatInput.value = '';
+            chatInput.disabled = true;
+
+            // 3. Match app.py: Use FormData for request.form["msg"]
+            const formData = new FormData();
+            formData.append('msg', text);
+
+            try {
+                // Match app.py: Fetch the "/get" route
+                const res = await fetch('/get', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error('Network response was not ok');
+
+                // Match app.py: Use .text() because backend returns a raw string
+                const data = await res.text();
+
+                // 4. UI: Append Bot Message
+                appendMsg(data, 'bot');
+
+            } catch (error) {
+                console.error("Error:", error);
+                appendMsg("Sorry, I encountered an error. Please try again.", 'bot');
+            } finally {
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+        });
+
+        function appendMsg(txt, sender) {
+            const div = document.createElement('div');
+            div.classList.add('msg', sender);
+
+            // Create a span for the text to handle styling better
+            const span = document.createElement('span');
+            span.textContent = txt;
+            div.appendChild(span);
+
+            chatLog.appendChild(div);
+
+            // Auto-scroll to the bottom
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>

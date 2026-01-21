@@ -15,7 +15,7 @@
 
         <form id="chatForm" class="chat-form">
             <input id="chatInput" type="text" placeholder="Ask a medical question..." required autocomplete="off">
-            <button type="submit">Send</button>
+            <button id="sendBtn" type="submit">Send</button>
         </form>
     </div>
 
@@ -33,32 +33,38 @@
             // 1. UI: Append User Message
             appendMsg(text, 'user');
 
-            // 2. Prepare UI for loading
+            // 2. Clear input and show "typing" indicator
             chatInput.value = '';
             chatInput.disabled = true;
+            showTyping();
 
-            // 3. Match app.py: Use FormData for request.form["msg"]
+            // 3. Prepare data for Flask
             const formData = new FormData();
             formData.append('msg', text);
 
             try {
-                // Match app.py: Fetch the "/get" route
                 const res = await fetch('/get', {
                     method: 'POST',
                     body: formData
                 });
 
-                if (!res.ok) throw new Error('Network response was not ok');
+                // Remove typing dots before showing the real response
+                hideTyping();
 
-                // Match app.py: Use .text() because backend returns a raw string
+                if (res.status === 429) {
+                    appendMsg("Slow down! You've sent too many messages. Please wait 30 seconds.", 'bot');
+                    return;
+                }
+
+                if (!res.ok) throw new Error('Server Error');
+
                 const data = await res.text();
-
-                // 4. UI: Append Bot Message
                 appendMsg(data, 'bot');
 
             } catch (error) {
+                hideTyping();
                 console.error("Error:", error);
-                appendMsg("Sorry, I encountered an error. Please try again.", 'bot');
+                appendMsg("Sorry, I'm having trouble connecting to the medical database. Try again in a moment.", 'bot');
             } finally {
                 chatInput.disabled = false;
                 chatInput.focus();
@@ -69,14 +75,38 @@
             const div = document.createElement('div');
             div.classList.add('msg', sender);
 
-            // Create a span for the text to handle styling better
             const span = document.createElement('span');
             span.textContent = txt;
             div.appendChild(span);
 
             chatLog.appendChild(div);
+            scrollToBottom();
+        }
 
-            // Auto-scroll to the bottom
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.classList.add('msg', 'bot', 'typing');
+
+            // Create three dots
+            typingDiv.innerHTML = `
+                <div class="dot-container">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            `;
+
+            chatLog.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+
+        function scrollToBottom() {
             chatLog.scrollTop = chatLog.scrollHeight;
         }
     </script>

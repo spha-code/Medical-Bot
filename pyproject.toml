@@ -21,4 +21,6 @@ dependencies = [
     "langchain>=1.2.6",
     "pexpect>=4.9.0",
     "langchain-classic>=1.0.1",
+    "langchain-google-genai>=4.2.0",
+    "google-generativeai>=0.8.6",
 ]

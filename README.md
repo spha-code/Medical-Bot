@@ -6,3 +6,5 @@ The notebook trials.ipynb is split into:
 - helper.py
 - prompt.py
 - store_index.py
+
+WORKS with GEMINI and OPENAI LLMs via API keys

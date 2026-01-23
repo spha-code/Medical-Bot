@@ -1,5 +1,5 @@
-# Use the official uv image for the build stage
-FROM ghcr.io/astral-sh/uv:python3.10-slim-bookworm
+# Use official Python image
+FROM python:3.10-slim-bookworm
 
 # Set the working directory
 WORKDIR /app
@@ -7,20 +7,22 @@ WORKDIR /app
 # Enable bytecode compilation for faster startup
 ENV UV_COMPILE_BYTECODE=1
 
-# Copy only the dependency files first (optimizes Docker caching)
+# Install uv
+RUN pip install --no-cache-dir uv
+
+# Copy dependency files first (better caching)
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies without installing the project itself
-# --frozen ensures the lockfile isn't updated during build
+# Install dependencies only (no project, no dev)
 RUN uv sync --frozen --no-install-project --no-dev
 
-# Copy the rest of your application code
+# Copy application code
 COPY . .
 
 # Install the project
 RUN uv sync --frozen --no-dev
 
-# Place /app/.venv/bin at the beginning of the PATH
+# Ensure virtualenv binaries are first
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Run your application
